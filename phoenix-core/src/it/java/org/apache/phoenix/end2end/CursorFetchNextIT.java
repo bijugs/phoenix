@@ -34,9 +34,9 @@ import static org.apache.phoenix.util.TestUtil.*;
 import static org.junit.Assert.*;
 
 
-public class CursorWithRowValueConstructorIT extends ParallelStatsDisabledIT {
+public class CursorFetchNextIT extends ParallelStatsDisabledIT {
     private static final String TABLE_NAME = "CursorRVCTestTable";
-    protected static final Log LOG = LogFactory.getLog(CursorWithRowValueConstructorIT.class);
+    protected static final Log LOG = LogFactory.getLog(CursorFetchNextIT.class);
 
     public void createAndInitializeTestTable() throws SQLException {
         Connection conn = DriverManager.getConnection(getUrl());
@@ -57,7 +57,7 @@ public class CursorWithRowValueConstructorIT extends ParallelStatsDisabledIT {
         int rowCount = 0;
         while(rowCount < 100){
             stmt.setInt(1, rowCount);
-            stmt.setInt(2, rand.nextInt(501));
+            stmt.setInt(2, rowCount);
             stmt.execute();
             ++rowCount;
         }
@@ -101,6 +101,39 @@ public class CursorWithRowValueConstructorIT extends ParallelStatsDisabledIT {
 
     }
 
+    @Test
+    public void testCursorsTestTwoFetchPK() throws SQLException {
+        try{
+            createAndInitializeTestTable();
+            String querySQL = "SELECT a_id FROM " + TABLE_NAME;
+
+            //Test actual cursor implementation
+            String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+            DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).execute();
+            cursorSQL = "OPEN testCursor";
+            DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).execute();
+            cursorSQL = "FETCH NEXT 2 ROWS FROM testCursor";
+            ResultSet rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
+            int rowID = 0;
+            while(rs.next()){
+                assertEquals(rowID,rs.getInt(1));
+                ++rowID;
+            }
+            rs.close();
+            rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
+            while(rs.next()){
+                assertEquals(rowID,rs.getInt(1));
+                ++rowID;
+            }
+            rs.close();
+            assertEquals(4,rowID);
+        } finally{
+            DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
+            deleteTestTable();
+        }
+
+    }
+    
     @Test
     public void testCursorsOnRandomTableData() throws SQLException {
         try{
@@ -165,6 +198,7 @@ public class CursorWithRowValueConstructorIT extends ParallelStatsDisabledIT {
             ResultSet rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
             int rowCount = 0;
             while(rs.next()){
+            	assertEquals(99-rowCount, rs.getInt(1));
                 rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
                 ++rowCount;
             }

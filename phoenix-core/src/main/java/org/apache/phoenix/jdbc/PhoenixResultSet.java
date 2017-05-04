@@ -776,10 +776,10 @@ public class PhoenixResultSet implements ResultSet, SQLCloseable {
                 overAllQueryMetrics.startResultSetWatch();
             }
             currentRow = scanner.next();
+            rowProjector.reset();
             if (currentRow == null) {
                 close();
             }
-            rowProjector.reset();
         } catch (RuntimeException e) {
             // FIXME: Expression.evaluate does not throw SQLException
             // so this will unwrap throws from that.

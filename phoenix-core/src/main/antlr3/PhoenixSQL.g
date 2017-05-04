@@ -133,6 +133,7 @@ tokens
     DECLARE = 'declare';
     CURSOR = 'cursor';
     OPEN = 'open';
+    PRIOR = 'prior';
     CLOSE = 'close';
     ROW = 'row';
     ROWS = 'rows';
@@ -769,6 +770,7 @@ cursor_close_node returns [CloseStatement ret]
 
 cursor_fetch_node returns [FetchStatement ret]
     :    FETCH NEXT (a=NUMBER)? (ROW|ROWS)? FROM c=cursor_name {ret = factory.fetch(c,true, a == null ? 1 :  Integer.parseInt( a.getText() )); }
+    |    FETCH PRIOR (a=NUMBER)? (ROW|ROWS)? FROM c=cursor_name {ret = factory.fetch(c,false, a == null ? 1 :  Integer.parseInt( a.getText() )); }
     ;
 
 // Parse a full delete expression structure.
