@@ -32,6 +32,7 @@ import org.apache.phoenix.iterate.CursorResultIterator;
 import org.apache.phoenix.parse.CloseStatement;
 import org.apache.phoenix.parse.DeclareCursorStatement;
 import org.apache.phoenix.parse.OpenStatement;
+import org.apache.phoenix.schema.PTable.IndexType;
 import org.apache.phoenix.schema.tuple.Tuple;
 
 public final class CursorUtil {
@@ -41,31 +42,36 @@ public final class CursorUtil {
         private final String selectSQL;
         private boolean isOpen = false;
         QueryPlan queryPlan;
-        ImmutableBytesWritable row;
+        ImmutableBytesWritable nextRow;
+        ImmutableBytesWritable currentRow;
         ImmutableBytesWritable previousRow;
         private Scan scan;
         private boolean moreValues=true;
-        private boolean isReversed;
+        private boolean isAlreadyReversed;
         private boolean islastCallNext;
         private CursorFetchPlan fetchPlan;
         private int offset = -1;
-        private boolean isAggregate;
+		private boolean isAggregate;
+		private ImmutableBytesWritable pPreviousRow;
+		private boolean isSeqScan;
 
         private CursorWrapper(String cursorName, String selectSQL, QueryPlan queryPlan){
             this.cursorName = cursorName;
             this.selectSQL = selectSQL;
             this.queryPlan = queryPlan;
             this.islastCallNext = true;
-            this.fetchPlan = new CursorFetchPlan(queryPlan,cursorName);
-            isAggregate = fetchPlan.isAggregate();
+            this.fetchPlan = new CursorFetchPlan(queryPlan, cursorName);
+            this.isAggregate = fetchPlan.isAggregate();
+    		this.isSeqScan = fetchPlan.isSeqScan();
         }
 
         private synchronized void openCursor(Connection conn) throws SQLException {
             if(isOpen){
                 return;
             }
-            this.scan = this.queryPlan.getContext().getScan();
-            isReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
+            //this.scan = this.queryPlan.getContext().getScan();
+            this.scan = this.fetchPlan.getContext().getScan();
+            isAlreadyReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
             isOpen = true;
         }
 
@@ -78,35 +84,81 @@ public final class CursorUtil {
         }
 
         private QueryPlan getFetchPlan(boolean isNext, int fetchSize) throws SQLException {
-            if (!isOpen)
+        	if (!isOpen)
                 throw new SQLException("Fetch call on closed cursor '" + this.cursorName + "'!");
-            ((CursorResultIterator)fetchPlan.iterator()).setFetchSize(fetchSize);
-            if (!isAggregate) { 
-                if (row!=null){
-                    scan.setStartRow(row.get());
-                }
+            if (!isNext) {
+            	fetchPlan.updateIterator();
             }
+            fetchPlan.setFetchSize(fetchSize);
+            setupScanForFetch(isNext);
             return this.fetchPlan;
         }
 
+		private void setupScanForFetch(boolean isNext) {
+			if (isSeqScan) 
+			{
+				if (islastCallNext != isNext) {
+					// we are switching from prior to next or next to prior
+					if (islastCallNext && !isAlreadyReversed) {
+						// reverse the scan if last call was next
+						ScanUtil.setReversed(scan);
+					} else {
+						ScanUtil.unsetReversed(scan);
+					}
+					isAlreadyReversed = !isAlreadyReversed;
+					if (!isAlreadyReversed) {
+						setScanBoundariesIfNotnull(currentRow, new ImmutableBytesWritable(scan.getStopRow()));
+					} else {
+						setScanBoundariesIfNotnull(currentRow, nextRow);
+					}
+				} else {	
+					if (!isAlreadyReversed) {
+						setScanBoundariesIfNotnull(nextRow, null);
+					} else {
+						setScanBoundariesIfNotnull(null, currentRow);
+					}
+					if (previousRow != null) {
+						pPreviousRow = new ImmutableBytesWritable(previousRow.get());
+					}
+				}
+				islastCallNext = isNext;
+			}
+		}
+		
+		private void setScanBoundariesIfNotnull(ImmutableBytesWritable startRow, ImmutableBytesWritable stopRow) {
+			if (startRow != null) {
+				scan.setStartRow(startRow.get());
+			}
+			if (stopRow != null) {
+				scan.setStopRow(stopRow.get());
+			}
+		}
+		
         public void updateLastScanRow(Tuple rowValues,Tuple nextRowValues) {
         	
-            this.moreValues = !isReversed ? nextRowValues != null : rowValues != null;
+        	this.moreValues = isSeqScan ? nextRowValues != null : rowValues != null;
             if(!moreValues()){
                return;
+            }        
+            if (nextRow == null) {
+                nextRow = new ImmutableBytesWritable();
             }
-            if (row == null) {
-                row = new ImmutableBytesWritable();
-            }
-            if (previousRow == null) {
-                previousRow = new ImmutableBytesWritable();
-            }
+			if (currentRow == null) {
+				currentRow = new ImmutableBytesWritable();
+			} else {
+				previousRow = new ImmutableBytesWritable(currentRow.get());
+			}
             if (nextRowValues != null) {
-                nextRowValues.getKey(row);
-            } 
+                nextRowValues.getKey(nextRow);
+            } /*else
+            	nextRow = null;*/
             if (rowValues != null) {
-                rowValues.getKey(previousRow);
-            }
+                rowValues.getKey(currentRow);
+            } else
+            	return;
+            if (pPreviousRow == null) {
+				pPreviousRow = new ImmutableBytesWritable(scan.getStartRow());
+			}
             offset++;
         }
 

@@ -17,18 +17,37 @@
  */
 package org.apache.phoenix.iterate;
 
+import org.apache.phoenix.expression.aggregator.Aggregator;
+import org.apache.phoenix.expression.aggregator.Aggregators;
 import org.apache.phoenix.schema.tuple.Tuple;
 import org.apache.phoenix.util.CursorUtil;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class CursorResultIterator implements ResultIterator {
     private String cursorName;
-    private PeekingResultIterator delegate;
+    private ResultIterator delegate;
     //TODO Configure fetch size from FETCH call
     private int fetchSize = 0;
     private int rowsRead = 0;
+    public boolean isPrior = false;
+    Deque<Tuple> items = new LinkedList<Tuple>();
+    Queue<Tuple> stack = Collections.asLifoQueue(items);
+    private boolean isAggregate;
+    private Aggregators aggregators;
+    
+    public CursorResultIterator(ResultIterator delegate, String cursorName, Aggregators aggregators) {
+        this.delegate = delegate;
+        this.cursorName = cursorName;
+        this.isAggregate = true;
+        this.aggregators = aggregators;
+    }
+    
     public CursorResultIterator(PeekingResultIterator delegate, String cursorName) {
         this.delegate = delegate;
         this.cursorName = cursorName;
@@ -36,15 +55,25 @@ public class CursorResultIterator implements ResultIterator {
 
     @Override
     public Tuple next() throws SQLException {
+    	if (isPrior && (fetchSize != rowsRead) && isAggregate) {
+    		Tuple next = stack.poll();
+    		if (next != null) {
+    			rowsRead++;
+    			Aggregator[] rowAggregators = aggregators.getAggregators();
+    			aggregators.reset(rowAggregators);
+    			aggregators.aggregate(rowAggregators, next);
+    		}
+    		return next;
+    	}
     	if(!CursorUtil.moreValues(cursorName)){
     	    return null;
         } else if (fetchSize == rowsRead) {
             return null;
     	}
-
         Tuple next = delegate.next();
-        CursorUtil.updateCursor(cursorName,next, delegate.peek());
+        CursorUtil.updateCursor(cursorName, next, isAggregate ? null : ((PeekingResultIterator) delegate).peek());
         rowsRead++;
+        stack.offer(next);
         return next;
     }
     
