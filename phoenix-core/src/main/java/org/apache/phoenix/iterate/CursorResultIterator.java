@@ -40,12 +40,14 @@ public class CursorResultIterator implements ResultIterator {
     Queue<Tuple> stack = Collections.asLifoQueue(items);
     private boolean isAggregate;
     private Aggregators aggregators;
+    private int cacheSize;
     
-    public CursorResultIterator(ResultIterator delegate, String cursorName, Aggregators aggregators) {
+    public CursorResultIterator(ResultIterator delegate, String cursorName, Aggregators aggregators, int cacheSize) {
         this.delegate = delegate;
         this.cursorName = cursorName;
         this.isAggregate = true;
         this.aggregators = aggregators;
+        this.cacheSize = cacheSize;
     }
     
     public CursorResultIterator(PeekingResultIterator delegate, String cursorName) {
@@ -90,7 +92,12 @@ public class CursorResultIterator implements ResultIterator {
 
     @Override
     public void close() throws SQLException {
-        //NOP
+        this.rowsRead = 0;
+        this.fetchSize = 0;
+    }
+    
+    public void closeIterator() throws SQLException {
+        delegate.close();
     }
 
     public void closeCursor() throws SQLException {

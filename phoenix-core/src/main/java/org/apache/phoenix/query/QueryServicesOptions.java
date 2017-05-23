@@ -56,6 +56,7 @@ import static org.apache.phoenix.query.QueryServices.MAX_SERVER_METADATA_CACHE_S
 import static org.apache.phoenix.query.QueryServices.MAX_SPOOL_TO_DISK_BYTES_ATTRIB;
 import static org.apache.phoenix.query.QueryServices.MAX_TENANT_MEMORY_PERC_ATTRIB;
 import static org.apache.phoenix.query.QueryServices.MIN_STATS_UPDATE_FREQ_MS_ATTRIB;
+import static org.apache.phoenix.query.QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB;
 import static org.apache.phoenix.query.QueryServices.MUTATE_BATCH_SIZE_ATTRIB;
 import static org.apache.phoenix.query.QueryServices.NUM_RETRIES_FOR_SCHEMA_UPDATE_CHECK;
 import static org.apache.phoenix.query.QueryServices.QUEUE_SIZE_ATTRIB;
@@ -121,6 +122,7 @@ public class QueryServicesOptions {
 	public static final long DEFAULT_MAX_SERVER_CACHE_SIZE = 1024*1024*100;  // 100 Mb
     public static final int DEFAULT_TARGET_QUERY_CONCURRENCY = 32;
     public static final int DEFAULT_MAX_QUERY_CONCURRENCY = 64;
+    public static final int DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT = 100;
     public static final String DEFAULT_DATE_FORMAT = DateUtil.DEFAULT_DATE_FORMAT;
     public static final String DEFAULT_DATE_FORMAT_TIMEZONE = DateUtil.DEFAULT_TIME_ZONE_ID;
     public static final boolean DEFAULT_CALL_QUEUE_ROUND_ROBIN = true;
@@ -320,6 +322,7 @@ public class QueryServicesOptions {
             .setIfUnset(KEEP_ALIVE_MS_ATTRIB, DEFAULT_KEEP_ALIVE_MS)
             .setIfUnset(THREAD_POOL_SIZE_ATTRIB, DEFAULT_THREAD_POOL_SIZE)
             .setIfUnset(QUEUE_SIZE_ATTRIB, DEFAULT_QUEUE_SIZE)
+            .setIfUnset(MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT)
             .setIfUnset(THREAD_TIMEOUT_MS_ATTRIB, DEFAULT_THREAD_TIMEOUT_MS)
             .setIfUnset(SPOOL_THRESHOLD_BYTES_ATTRIB, DEFAULT_SPOOL_THRESHOLD_BYTES)
             .setIfUnset(SPOOL_DIRECTORY, DEFAULT_SPOOL_DIRECTORY)
@@ -504,6 +507,10 @@ public class QueryServicesOptions {
         return this;
     }
 
+    public int getMaxCursorCacheRowCount() {
+    	return config.getInt(MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT);
+    }
+    
     public int getKeepAliveMs() {
         return config.getInt(KEEP_ALIVE_MS_ATTRIB, DEFAULT_KEEP_ALIVE_MS);
     }

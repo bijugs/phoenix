@@ -9,6 +9,8 @@ import org.apache.phoenix.iterate.CursorResultIterator;
 import org.apache.phoenix.iterate.LookAheadResultIterator;
 import org.apache.phoenix.iterate.ParallelScanGrouper;
 import org.apache.phoenix.iterate.ResultIterator;
+import org.apache.phoenix.query.QueryServices;
+import org.apache.phoenix.query.QueryServicesOptions;
 import org.apache.phoenix.schema.PTable.IndexType;
 import org.apache.phoenix.util.ScanUtil;
 
@@ -39,9 +41,11 @@ public class CursorFetchPlan extends DelegateQueryPlan {
     @Override
     public ResultIterator iterator(ParallelScanGrouper scanGrouper, Scan scan) throws SQLException {
         StatementContext context = delegate.getContext();
+        int cacheSize = context.getConnection().getQueryServices().getProps().getInt(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB,
+        		 QueryServicesOptions.DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT);
         if (resultIterator == null && !isSeqScan) {
             context.getOverallQueryMetrics().startQuery();
-	        resultIterator = new CursorResultIterator(delegate.iterator(scanGrouper, scan),cursorName,context.getAggregationManager().getAggregators());
+	        resultIterator = new CursorResultIterator(delegate.iterator(scanGrouper, scan),cursorName,context.getAggregationManager().getAggregators(), cacheSize);
 	    } else if (resultIterator == null || isSeqScan) {
             context.getOverallQueryMetrics().startQuery();
 	        resultIterator = new CursorResultIterator(LookAheadResultIterator.wrap(delegate.iterator(scanGrouper, scan)),cursorName);

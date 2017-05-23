@@ -32,7 +32,6 @@ import org.apache.phoenix.iterate.CursorResultIterator;
 import org.apache.phoenix.parse.CloseStatement;
 import org.apache.phoenix.parse.DeclareCursorStatement;
 import org.apache.phoenix.parse.OpenStatement;
-import org.apache.phoenix.schema.PTable.IndexType;
 import org.apache.phoenix.schema.tuple.Tuple;
 
 public final class CursorUtil {
@@ -69,7 +68,6 @@ public final class CursorUtil {
             if(isOpen){
                 return;
             }
-            //this.scan = this.queryPlan.getContext().getScan();
             this.scan = this.fetchPlan.getContext().getScan();
             isAlreadyReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
             isOpen = true;
@@ -238,4 +236,5 @@ public final class CursorUtil {
     public static boolean moreValues(String cursorName) {
         return mapCursorIDQuery.get(cursorName).moreValues();
     }
+    
 }
