@@ -48,6 +48,7 @@ public class CursorResultIterator implements ResultIterator {
         this.isAggregate = true;
         this.aggregators = aggregators;
         this.cacheSize = cacheSize;
+        System.out.println("CursorResultIterator:: cacheSize "+ this.cacheSize);
     }
     
     public CursorResultIterator(PeekingResultIterator delegate, String cursorName) {
@@ -61,9 +62,11 @@ public class CursorResultIterator implements ResultIterator {
     		Tuple next = stack.poll();
     		if (next != null) {
     			rowsRead++;
-    			Aggregator[] rowAggregators = aggregators.getAggregators();
-    			aggregators.reset(rowAggregators);
-    			aggregators.aggregate(rowAggregators, next);
+    			if (aggregators != null) {
+    				Aggregator[] rowAggregators = aggregators.getAggregators();
+    				aggregators.reset(rowAggregators);
+    				aggregators.aggregate(rowAggregators, next);
+    			}
     		}
     		return next;
     	}
@@ -73,6 +76,9 @@ public class CursorResultIterator implements ResultIterator {
             return null;
     	}
         Tuple next = delegate.next();
+        if (isAggregate && rowsRead >= cacheSize) {
+        	items.removeLast();
+        }
         CursorUtil.updateCursor(cursorName, next, isAggregate ? null : ((PeekingResultIterator) delegate).peek());
         rowsRead++;
         stack.offer(next);
