@@ -121,6 +121,12 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		while (rs.next()) {
     		    assertEquals(rowID, rs.getString(1));
     		}
+    		System.out.println("**** Fetch after prior ****");
+    		cursorSQL = "FETCH NEXT FROM testCursor";
+    		rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
+            while (rs.next()) {
+    		    System.out.println("**** Value ****"+ rs.getString(1));
+            }
     		rs.close();
     	} finally {
 			DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
@@ -234,19 +240,28 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
              while (rs.next()) {
             	 rowID = "A"+i;
      		    assertEquals(rowID, rs.getString(1));
-     		    System.out.println("**** Value ****"+ rs.getString(1));
+     		    System.out.println("**** Value ****"+ rs.getString(1) +" "+i);
      		    i--;
              }
             i++;
-     		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
+     		cursorSQL = "FETCH PRIOR 2 ROW FROM testCursor";
      		rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
              while (rs.next()) {
-            	 System.out.println("*** Value of i ***"+i);
+            	 System.out.println("*** Value 1 ***"+rs.getString(1) + " "+ i);
             	 rowID = "A"+i;
      		    assertEquals(rowID, rs.getString(1));
      		    i++;
              }
-             assertEquals(10,i);
+             assertEquals(8,i);
+             cursorSQL = "FETCH NEXT 4 ROWS FROM testCursor";
+      		 rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
+      		 i--;
+             while (rs.next()) {
+             	 rowID = "A"+i;
+      		    //assertEquals(rowID, rs.getString(1));
+      		    System.out.println("**** Value ****"+ rs.getString(1));
+      		    i--;
+             }
      		rs.close();
      	} finally {
  			DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();

@@ -21,9 +21,10 @@ public class CursorFetchPlan extends DelegateQueryPlan {
     private boolean isAggregate;
     private String cursorName;
     private boolean isSeqScan;
+    private boolean isPrior;
 
-    public void updateIterator() {
-        resultIterator.isPrior = true;
+    public void updateDirection(boolean isPrior) {
+        this.isPrior = isPrior;
     }
 
     public CursorFetchPlan(QueryPlan cursorQueryPlan,String cursorName) {
@@ -50,6 +51,7 @@ public class CursorFetchPlan extends DelegateQueryPlan {
             context.getOverallQueryMetrics().startQuery();
 	        resultIterator = new CursorResultIterator(LookAheadResultIterator.wrap(delegate.iterator(scanGrouper, scan)),cursorName);
 	    }
+        resultIterator.setIsPrior(isPrior);
         resultIterator.setFetchSize(fetchSize);
 	    return resultIterator;
     }

@@ -35,10 +35,14 @@ public class CursorResultIterator implements ResultIterator {
     //TODO Configure fetch size from FETCH call
     private int fetchSize = 0;
     private int rowsRead = 0;
-    public boolean isPrior = false;
-    Deque<Tuple> items = new LinkedList<Tuple>();
-    Queue<Tuple> stack = Collections.asLifoQueue(items);
+    private int rowsPriorRead = 0;
+    private boolean isPrior = false;
+    private Deque<Tuple> items = new LinkedList<Tuple>();
+    private Queue<Tuple> stack = Collections.asLifoQueue(items);
+    private Deque<Tuple> prevItems = new LinkedList<Tuple>();
+    private Queue<Tuple> prevStack = Collections.asLifoQueue(prevItems);
     private boolean isAggregate;
+    private boolean useCacheForNext = false;
     private Aggregators aggregators;
     private int cacheSize;
     
@@ -48,7 +52,6 @@ public class CursorResultIterator implements ResultIterator {
         this.isAggregate = true;
         this.aggregators = aggregators;
         this.cacheSize = cacheSize;
-        System.out.println("CursorResultIterator:: cacheSize "+ this.cacheSize);
     }
     
     public CursorResultIterator(PeekingResultIterator delegate, String cursorName) {
@@ -58,17 +61,41 @@ public class CursorResultIterator implements ResultIterator {
 
     @Override
     public Tuple next() throws SQLException {
-    	if (isPrior && (fetchSize != rowsRead) && isAggregate) {
-    		Tuple next = stack.poll();
-    		if (next != null) {
-    			rowsRead++;
-    			if (aggregators != null) {
-    				Aggregator[] rowAggregators = aggregators.getAggregators();
-    				aggregators.reset(rowAggregators);
-    				aggregators.aggregate(rowAggregators, next);
+    	if (isPrior && isAggregate) {
+    		if (fetchSize != rowsPriorRead) {
+    			rowsRead = 0;
+    			Tuple next = stack.poll();
+    			prevStack.offer(next);
+    			useCacheForNext = true;
+    			if (next != null) {
+    				rowsPriorRead++;
+    				if (aggregators != null) {
+    					Aggregator[] rowAggregators = aggregators.getAggregators();
+    					aggregators.reset(rowAggregators);
+    					aggregators.aggregate(rowAggregators, next);
+    				}
     			}
+    			return next;
+    		} else 
+    			return null;
+    	}
+    	rowsPriorRead = 0;
+    	if (useCacheForNext && isAggregate) {
+    		if (fetchSize != rowsRead) {
+    			Tuple next = prevStack.poll();
+    			if (next != null) {
+    				stack.offer(next);
+					rowsRead++;
+    				if (aggregators != null) {
+    					Aggregator[] rowAggregators = aggregators.getAggregators();
+    					aggregators.reset(rowAggregators);
+    					aggregators.aggregate(rowAggregators, next);
+    				}
+    				return next;
+    			}
+    		} else {
+    			useCacheForNext = false;
     		}
-    		return next;
     	}
     	if(!CursorUtil.moreValues(cursorName)){
     	    return null;
@@ -113,5 +140,9 @@ public class CursorResultIterator implements ResultIterator {
     public void setFetchSize(int fetchSize){
         this.fetchSize = fetchSize;
         this.rowsRead = 0;
+    }
+    
+    public void setIsPrior(boolean isPrior){
+        this.isPrior = isPrior;
     }
 }

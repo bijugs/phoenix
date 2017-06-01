@@ -85,8 +85,9 @@ public final class CursorUtil {
         	if (!isOpen)
                 throw new SQLException("Fetch call on closed cursor '" + this.cursorName + "'!");
             if (!isNext) {
-            	fetchPlan.updateIterator();
-            }
+            	fetchPlan.updateDirection(true);
+            } else
+            	fetchPlan.updateDirection(false);
             fetchPlan.setFetchSize(fetchSize);
             setupScanForFetch(isNext);
             return this.fetchPlan;
