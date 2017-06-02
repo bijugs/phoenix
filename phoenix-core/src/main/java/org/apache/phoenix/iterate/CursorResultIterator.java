@@ -67,9 +67,9 @@ public class CursorResultIterator implements ResultIterator {
     		if (fetchSize != rowsPriorRead) {
     			rowsRead = 0;
     			Tuple next = stack.poll();
-    			prevStack.offer(next);
     			useCacheForNext = true;
     			if (next != null) {
+        			prevStack.offer(next);
     				rowsPriorRead++;
     				if (aggregators != null) {
     					Aggregator[] rowAggregators = aggregators.getAggregators();
@@ -80,14 +80,20 @@ public class CursorResultIterator implements ResultIterator {
     				usedOffset -= 2*cacheSize;
     				if (usedOffset < 0)
     					usedOffset = 0;
-    				this.delegate = CursorUtil.getLimitOffsetIterator(cursorName, usedOffset, cacheSize);
+    				this.delegate = CursorUtil.getOffsetIterator(cursorName, usedOffset);
     				Tuple cacheFeed = delegate.next();
-    				while (cacheFeed != null) {
+    				int count = 1;
+    				while (count < cacheSize && cacheFeed != null) {
     					stack.offer(cacheFeed);
     					cacheFeed = delegate.next();
+    					count++;
     				}
+    				stack.offer(cacheFeed);
+    				offset = usedOffset + cacheSize;
     				rowsPriorRead++;
-    				return stack.poll();
+    				next = stack.poll();
+    				prevStack.offer(next);
+    				CursorUtil.updateCursor(cursorName, next, null);
     			} 
     			return next;
     		} else 
@@ -99,7 +105,7 @@ public class CursorResultIterator implements ResultIterator {
     			Tuple next = prevStack.poll();
     			if (next != null) {
     				stack.offer(next);
-					rowsRead++;
+    				rowsRead++;
     				if (aggregators != null) {
     					Aggregator[] rowAggregators = aggregators.getAggregators();
     					aggregators.reset(rowAggregators);
@@ -107,10 +113,12 @@ public class CursorResultIterator implements ResultIterator {
     				}
     				return next;
     			}
-    		} else {
-    			useCacheForNext = false;
-    			usedOffset = offset;
-    		}
+    			else {
+    				useCacheForNext = false;
+    				usedOffset = offset;
+    			}
+    		} else
+    			return null;
     	}
     	if(!CursorUtil.moreValues(cursorName)){
     	    return null;
@@ -157,6 +165,7 @@ public class CursorResultIterator implements ResultIterator {
     public void setFetchSize(int fetchSize){
         this.fetchSize = fetchSize;
         this.rowsRead = 0;
+        this.rowsPriorRead = 0;
     }
     
     public void setIsPrior(boolean isPrior){
