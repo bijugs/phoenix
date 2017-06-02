@@ -29,6 +29,9 @@ import org.apache.phoenix.compile.QueryPlan;
 import org.apache.phoenix.compile.OrderByCompiler.OrderBy;
 import org.apache.phoenix.execute.CursorFetchPlan;
 import org.apache.phoenix.iterate.CursorResultIterator;
+import org.apache.phoenix.iterate.LimitingResultIterator;
+import org.apache.phoenix.iterate.OffsetResultIterator;
+import org.apache.phoenix.iterate.ResultIterator;
 import org.apache.phoenix.parse.CloseStatement;
 import org.apache.phoenix.parse.DeclareCursorStatement;
 import org.apache.phoenix.parse.OpenStatement;
@@ -170,6 +173,19 @@ public final class CursorUtil {
                 throw new SQLException("Fetch call on closed cursor '" + this.cursorName + "'!");
             return selectSQL;
         }
+        
+        public ResultIterator getLimitOffsetIterator(int offset, int limit) {
+        	ResultIterator rsIterator = null;
+        	try {
+				rsIterator = queryPlan.iterator();
+				rsIterator = new OffsetResultIterator(rsIterator, offset);
+				rsIterator = new LimitingResultIterator(rsIterator, limit);			
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return rsIterator;
+        }
     }
 
     private static Map<String, CursorWrapper> mapCursorIDQuery = new HashMap<String,CursorWrapper>();
@@ -236,6 +252,10 @@ public final class CursorUtil {
 
     public static boolean moreValues(String cursorName) {
         return mapCursorIDQuery.get(cursorName).moreValues();
+    }
+    
+    public static ResultIterator getLimitOffsetIterator(String cursorName, int offset, int limit) {
+    	return mapCursorIDQuery.get(cursorName).getLimitOffsetIterator(offset, limit);
     }
     
 }

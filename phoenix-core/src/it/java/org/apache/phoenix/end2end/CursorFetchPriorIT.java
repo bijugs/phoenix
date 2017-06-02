@@ -1,5 +1,6 @@
 package org.apache.phoenix.end2end;
 
+import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
 import static org.junit.Assert.assertEquals;
 
 import java.sql.Connection;
@@ -8,10 +9,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.phoenix.query.QueryServices;
+import org.apache.phoenix.query.QueryServicesOptions;
+import org.apache.phoenix.util.PhoenixRuntime;
+import org.apache.phoenix.util.PropertiesUtil;
 import org.junit.Test;
 
 public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
@@ -259,12 +265,62 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
              while (rs.next()) {
              	 rowID = "A"+i;
       		    //assertEquals(rowID, rs.getString(1));
-      		    System.out.println("**** Value ****"+ rs.getString(1));
+      		    System.out.println("**** Value 2 ****"+ rs.getString(1));
       		    i--;
              }
      		rs.close();
      	} finally {
  			DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
+ 			deleteTestTable();
+ 		}
+
+ 	}
+    
+    @Test
+ 	public void testFetchPriorOnCursorPopulate() throws SQLException {
+     	try {
+     		createAndInitializeTestTable();
+            Properties props = PropertiesUtil.deepCopy(TEST_PROPERTIES);
+            props.setProperty(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, Integer.toString(2));
+            Connection conn = DriverManager.getConnection(getUrl(), props);
+     		String querySQL = "SELECT * FROM " + TABLE_NAME + " ORDER BY PRICE DESC";
+     		// Test actual cursor implementation
+     		String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+     		conn.prepareStatement(cursorSQL).execute();
+     		cursorSQL = "OPEN testCursor";
+     		conn.prepareStatement(cursorSQL).execute();
+     		cursorSQL = "FETCH NEXT 4 ROWS FROM testCursor";
+     		ResultSet rs = conn.prepareStatement(cursorSQL).executeQuery();
+     		int i = 9;
+     		String rowID = null;
+             while (rs.next()) {
+            	 rowID = "A"+i;
+     		    assertEquals(rowID, rs.getString(1));
+     		    System.out.println("**** Value ****"+ rs.getString(1) +" "+i);
+     		    i--;
+             }
+            i++;
+     		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
+     		rs = conn.prepareStatement(cursorSQL).executeQuery();
+             while (rs.next()) {
+            	 System.out.println("*** Value 1 ***"+rs.getString(1) + " "+ i);
+            	 rowID = "A"+i;
+     		    assertEquals(rowID, rs.getString(1));
+     		    i++;
+             }
+             assertEquals(10,i);
+             cursorSQL = "FETCH NEXT 4 ROWS FROM testCursor";
+      		 rs = conn.prepareStatement(cursorSQL).executeQuery();
+      		 i--;
+             while (rs.next()) {
+             	 rowID = "A"+i;
+      		    assertEquals(rowID, rs.getString(1));
+      		    System.out.println("**** Value 2 ****"+ rs.getString(1));
+      		    i--;
+             }
+     		rs.close();
+     		conn.prepareStatement("CLOSE testCursor").execute();
+     	} finally {
  			deleteTestTable();
  		}
 

@@ -45,6 +45,8 @@ public class CursorResultIterator implements ResultIterator {
     private boolean useCacheForNext = false;
     private Aggregators aggregators;
     private int cacheSize;
+    private int offset;
+    private int usedOffset;
     
     public CursorResultIterator(ResultIterator delegate, String cursorName, Aggregators aggregators, int cacheSize) {
         this.delegate = delegate;
@@ -74,7 +76,19 @@ public class CursorResultIterator implements ResultIterator {
     					aggregators.reset(rowAggregators);
     					aggregators.aggregate(rowAggregators, next);
     				}
-    			}
+    			} else if (usedOffset != 0) {
+    				usedOffset -= 2*cacheSize;
+    				if (usedOffset < 0)
+    					usedOffset = 0;
+    				this.delegate = CursorUtil.getLimitOffsetIterator(cursorName, usedOffset, cacheSize);
+    				Tuple cacheFeed = delegate.next();
+    				while (cacheFeed != null) {
+    					stack.offer(cacheFeed);
+    					cacheFeed = delegate.next();
+    				}
+    				rowsPriorRead++;
+    				return stack.poll();
+    			} 
     			return next;
     		} else 
     			return null;
@@ -95,6 +109,7 @@ public class CursorResultIterator implements ResultIterator {
     			}
     		} else {
     			useCacheForNext = false;
+    			usedOffset = offset;
     		}
     	}
     	if(!CursorUtil.moreValues(cursorName)){
@@ -108,6 +123,8 @@ public class CursorResultIterator implements ResultIterator {
         }
         CursorUtil.updateCursor(cursorName, next, isAggregate ? null : ((PeekingResultIterator) delegate).peek());
         rowsRead++;
+        offset++;
+        usedOffset++;
         stack.offer(next);
         return next;
     }
