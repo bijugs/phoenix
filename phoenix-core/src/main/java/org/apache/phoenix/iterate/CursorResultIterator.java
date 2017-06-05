@@ -56,14 +56,15 @@ public class CursorResultIterator implements ResultIterator {
         this.cacheSize = cacheSize;
     }
     
-    public CursorResultIterator(PeekingResultIterator delegate, String cursorName) {
+    public CursorResultIterator(PeekingResultIterator delegate, String cursorName, int cacheSize) {
         this.delegate = delegate;
         this.cursorName = cursorName;
+        this.cacheSize = cacheSize;
     }
 
     @Override
     public Tuple next() throws SQLException {
-    	if (isPrior && isAggregate) {
+    	if (isPrior /*&& isAggregate*/) {
     		if (fetchSize != rowsPriorRead) {
     			rowsRead = 0;
     			Tuple next = stack.poll();
@@ -100,7 +101,7 @@ public class CursorResultIterator implements ResultIterator {
     			return null;
     	}
     	rowsPriorRead = 0;
-    	if (useCacheForNext && isAggregate) {
+    	if (useCacheForNext /*&& isAggregate*/) {
     		if (fetchSize != rowsRead) {
     			Tuple next = prevStack.poll();
     			if (next != null) {
@@ -126,7 +127,7 @@ public class CursorResultIterator implements ResultIterator {
             return null;
     	}
         Tuple next = delegate.next();
-        if (isAggregate && rowsRead >= cacheSize) {
+        if (/*isAggregate &&*/ rowsRead >= cacheSize) {
         	items.removeLast();
         }
         CursorUtil.updateCursor(cursorName, next, isAggregate ? null : ((PeekingResultIterator) delegate).peek());
