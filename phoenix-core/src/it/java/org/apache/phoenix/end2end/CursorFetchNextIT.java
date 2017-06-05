@@ -94,6 +94,7 @@ public class CursorFetchNextIT extends ParallelStatsDisabledIT {
                 ++rowID;
                 rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
             }
+            assertEquals(100,rowID);
         } finally{
             DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
             deleteTestTable();

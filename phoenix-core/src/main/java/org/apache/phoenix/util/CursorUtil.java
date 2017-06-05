@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.phoenix.compile.QueryPlan;
@@ -56,6 +57,7 @@ public final class CursorUtil {
 		private boolean isAggregate;
 		private ImmutableBytesWritable pPreviousRow;
 		private boolean isSeqScan;
+		private boolean querySwitched = false;
 
         private CursorWrapper(String cursorName, String selectSQL, QueryPlan queryPlan){
             this.cursorName = cursorName;
@@ -99,45 +101,12 @@ public final class CursorUtil {
 		private void setupScanForFetch(boolean isNext) {
 			if (isSeqScan) 
 			{
-				if (islastCallNext != isNext) {
-					// we are switching from prior to next or next to prior
-					if (islastCallNext && !isAlreadyReversed) {
-						// reverse the scan if last call was next
-						ScanUtil.setReversed(scan);
-					} else {
-						ScanUtil.unsetReversed(scan);
-					}
-					isAlreadyReversed = !isAlreadyReversed;
-					if (!isAlreadyReversed) {
-						setScanBoundariesIfNotnull(currentRow, new ImmutableBytesWritable(scan.getStopRow()));
-					} else {
-						setScanBoundariesIfNotnull(currentRow, nextRow);
-					}
-				} else {	
-					if (!isAlreadyReversed) {
-						setScanBoundariesIfNotnull(nextRow, null);
-					} else {
-						setScanBoundariesIfNotnull(null, currentRow);
-					}
-					if (previousRow != null) {
-						pPreviousRow = new ImmutableBytesWritable(previousRow.get());
-					}
-				}
-				islastCallNext = isNext;
+				if (nextRow != null)
+					scan.setStartRow(nextRow.get());
 			}
 		}
 		
-		private void setScanBoundariesIfNotnull(ImmutableBytesWritable startRow, ImmutableBytesWritable stopRow) {
-			if (startRow != null) {
-				scan.setStartRow(startRow.get());
-			}
-			if (stopRow != null) {
-				scan.setStopRow(stopRow.get());
-			}
-		}
-		
-        public void updateLastScanRow(Tuple rowValues,Tuple nextRowValues) {
-        	
+		public void updateLastScanRow(Tuple rowValues,Tuple nextRowValues) {
         	this.moreValues = isSeqScan ? nextRowValues != null : rowValues != null;
             if(!moreValues()){
                return;

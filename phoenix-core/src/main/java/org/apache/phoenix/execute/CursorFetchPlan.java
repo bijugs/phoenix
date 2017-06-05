@@ -65,9 +65,9 @@ public class CursorFetchPlan extends DelegateQueryPlan {
         if (resultIterator == null && !isSeqScan) {
             context.getOverallQueryMetrics().startQuery();
 	        resultIterator = new CursorResultIterator(delegate.iterator(scanGrouper, scan),cursorName,context.getAggregationManager().getAggregators(), cacheSize);
-	    } else if (resultIterator == null || isSeqScan) {
+	    } else if (resultIterator == null && isSeqScan) {
             context.getOverallQueryMetrics().startQuery();
-	        resultIterator = new CursorResultIterator(LookAheadResultIterator.wrap(delegate.iterator(scanGrouper, scan)),cursorName);
+	        resultIterator = new CursorResultIterator(LookAheadResultIterator.wrap(delegate.iterator(scanGrouper, scan)),cursorName, cacheSize);
 	    }
         resultIterator.setIsPrior(isPrior);
         resultIterator.setFetchSize(fetchSize);
