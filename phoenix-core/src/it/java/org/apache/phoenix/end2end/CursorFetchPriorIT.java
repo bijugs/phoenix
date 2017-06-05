@@ -256,6 +256,66 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     }
     
     @Test
+    public void testFetchPriorOnCursorsSimple3() throws SQLException {
+    	/*
+    	 * Test with a small cache size of 2 rows
+    	 */
+    	try {
+    		createAndInitializeTestTable();
+    		Properties props = PropertiesUtil.deepCopy(TEST_PROPERTIES);
+    		props.setProperty(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, Integer.toString(2));
+    		Connection conn = DriverManager.getConnection(getUrl(), props);
+    		String querySQL = "SELECT * FROM " + TABLE_NAME + " ORDER BY TICKER DESC";
+    		// Test actual cursor implementation
+    		String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "OPEN testCursor";
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "FETCH NEXT 4 ROWS FROM testCursor";
+    		ResultSet rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		int i = 9;
+    		String rowID = null;
+    		while (rs.next()) {
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i--;
+    		}
+    		i++;
+    		assertEquals(6, i);
+    		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
+    		rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		while (rs.next()) {
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i++;
+    		}
+    		assertEquals(10,i);
+    		cursorSQL = "FETCH NEXT 4 ROWS FROM testCursor";
+    		rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		i--;
+    		while (rs.next()) {
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i--;
+    		}
+    		cursorSQL = "FETCH PRIOR 4 ROWS FROM testCursor";
+    		rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		i++;
+    		assertEquals(6, i);
+    		while (rs.next()) {
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i++;
+    		}
+    		assertEquals(10,i);
+    		rs.close();
+    		conn.prepareStatement("CLOSE testCursor").execute();
+    	} finally {
+    		deleteTestTable();
+    	}
+    }
+    	
+    @Test
     public void testFetchPriorOnCursorsComplex() throws SQLException {
     	/*
     	 * Test case on a complex query and in this case using a group by on a non key column
