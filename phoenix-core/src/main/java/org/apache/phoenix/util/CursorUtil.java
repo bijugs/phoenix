@@ -23,14 +23,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.phoenix.compile.QueryPlan;
-import org.apache.phoenix.compile.OrderByCompiler.OrderBy;
 import org.apache.phoenix.execute.CursorFetchPlan;
 import org.apache.phoenix.iterate.CursorResultIterator;
-import org.apache.phoenix.iterate.LimitingResultIterator;
 import org.apache.phoenix.iterate.OffsetResultIterator;
 import org.apache.phoenix.iterate.ResultIterator;
 import org.apache.phoenix.parse.CloseStatement;
@@ -47,25 +44,16 @@ public final class CursorUtil {
         QueryPlan queryPlan;
         ImmutableBytesWritable nextRow;
         ImmutableBytesWritable currentRow;
-        ImmutableBytesWritable previousRow;
         private Scan scan;
         private boolean moreValues=true;
-        private boolean isAlreadyReversed;
-        private boolean islastCallNext;
         private CursorFetchPlan fetchPlan;
-        private int offset = -1;
-		private boolean isAggregate;
-		private ImmutableBytesWritable pPreviousRow;
 		private boolean isSeqScan;
-		private boolean querySwitched = false;
 
         private CursorWrapper(String cursorName, String selectSQL, QueryPlan queryPlan){
             this.cursorName = cursorName;
             this.selectSQL = selectSQL;
             this.queryPlan = queryPlan;
-            this.islastCallNext = true;
             this.fetchPlan = new CursorFetchPlan(queryPlan, cursorName);
-            this.isAggregate = fetchPlan.isAggregate();
     		this.isSeqScan = fetchPlan.isSeqScan();
         }
 
@@ -74,7 +62,6 @@ public final class CursorUtil {
                 return;
             }
             this.scan = this.fetchPlan.getContext().getScan();
-            isAlreadyReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
             isOpen = true;
         }
 
@@ -116,21 +103,13 @@ public final class CursorUtil {
             }
 			if (currentRow == null) {
 				currentRow = new ImmutableBytesWritable();
-			} else {
-				previousRow = new ImmutableBytesWritable(currentRow.get());
-			}
+			} 
             if (nextRowValues != null) {
                 nextRowValues.getKey(nextRow);
-            } /*else
-            	nextRow = null;*/
+            } 
             if (rowValues != null) {
                 rowValues.getKey(currentRow);
-            } else
-            	return;
-            if (pPreviousRow == null) {
-				pPreviousRow = new ImmutableBytesWritable(scan.getStartRow());
-			}
-            offset++;
+            } 
         }
 
         public boolean moreValues() {
