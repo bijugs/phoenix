@@ -83,6 +83,7 @@ public class StatementContext {
     private Map<SelectStatement, Object> subqueryResults;
     private final ReadMetricQueue readMetricsQueue;
     private final OverAllQueryMetrics overAllQueryMetrics;
+    private boolean reversalAlreadySet = false;
     
     public StatementContext(PhoenixStatement statement) {
         this(statement, new Scan());
@@ -136,6 +137,13 @@ public class StatementContext {
         this.overAllQueryMetrics = new OverAllQueryMetrics(isRequestMetricsEnabled);
     }
 
+    public boolean isReversalAlreadySet(){
+    	return reversalAlreadySet;
+    }
+    
+    public void setReversalAlreadySet(boolean flag){
+    	reversalAlreadySet = flag;
+    }
     /**
      * build map from dataColumn to what will be its position in single KeyValue value bytes
      * returned from the coprocessor that joins from the index row back to the data row.

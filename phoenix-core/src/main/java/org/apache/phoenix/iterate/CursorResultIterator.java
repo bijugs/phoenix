@@ -120,11 +120,13 @@ public class CursorResultIterator implements ResultIterator {
     		} else
     			return null;
     	}
+    	
     	if(!CursorUtil.moreValues(cursorName)){
     	    return null;
         } else if (fetchSize == rowsRead) {
             return null;
     	}
+    	
         Tuple next = delegate.next();
         if (isAggregate && rowsRead >= cacheSize) {
         	items.removeLast();

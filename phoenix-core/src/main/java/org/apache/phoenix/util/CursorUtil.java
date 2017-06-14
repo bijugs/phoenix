@@ -20,9 +20,11 @@ package org.apache.phoenix.util;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.phoenix.compile.QueryPlan;
@@ -50,12 +52,14 @@ public final class CursorUtil {
         private Scan scan;
         private boolean moreValues=true;
         private boolean isAlreadyReversed;
+        private boolean alreadyReversed;
         private boolean islastCallNext;
         private CursorFetchPlan fetchPlan;
         private int offset = -1;
 		private boolean isAggregate;
 		private ImmutableBytesWritable pPreviousRow;
 		private boolean isSeqScan;
+        boolean flipped = false;
 
         private CursorWrapper(String cursorName, String selectSQL, QueryPlan queryPlan){
             this.cursorName = cursorName;
@@ -73,6 +77,7 @@ public final class CursorUtil {
             }
             this.scan = this.fetchPlan.getContext().getScan();
             isAlreadyReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
+            alreadyReversed=OrderBy.REV_ROW_KEY_ORDER_BY.equals(this.queryPlan.getOrderBy());
             isOpen = true;
         }
 
@@ -101,23 +106,43 @@ public final class CursorUtil {
 			{
 				if (islastCallNext != isNext) {
 					// we are switching from prior to next or next to prior
-					if (islastCallNext && !isAlreadyReversed) {
-						// reverse the scan if last call was next
+					if ((islastCallNext && !isAlreadyReversed) || (!islastCallNext && !isAlreadyReversed)) {
 						ScanUtil.setReversed(scan);
 					} else {
 						ScanUtil.unsetReversed(scan);
+						fetchPlan.getContext().setReversalAlreadySet(true);
 					}
 					isAlreadyReversed = !isAlreadyReversed;
 					if (!isAlreadyReversed) {
-						setScanBoundariesIfNotnull(currentRow, new ImmutableBytesWritable(scan.getStopRow()));
+						if (nextRow == null) {
+							this.moreValues = true;
+							setScanBoundariesIfNotnull(new ImmutableBytesWritable(HConstants.EMPTY_START_ROW), new ImmutableBytesWritable(HConstants.EMPTY_END_ROW));
+						} else if (nextRow != null  && !ScanUtil.isReversed(scan) && alreadyReversed) {
+							setScanBoundariesIfNotnull(currentRow,new ImmutableBytesWritable(HConstants.EMPTY_END_ROW));
+						}
+						else
+							setScanBoundariesIfNotnull(currentRow,new ImmutableBytesWritable(scan.getStopRow()));
 					} else {
-						setScanBoundariesIfNotnull(currentRow, nextRow);
+						if (nextRow == null) {
+							this.moreValues = true;
+							setScanBoundariesIfNotnull(new ImmutableBytesWritable(HConstants.EMPTY_START_ROW), new ImmutableBytesWritable(HConstants.EMPTY_END_ROW));
+						} else if (nextRow != null  && ScanUtil.isReversed(scan) && alreadyReversed) {
+							byte[] start = ByteUtil.nextKey(ByteUtil.nextKey(currentRow.get()));
+							setScanBoundariesIfNotnull(new ImmutableBytesWritable(HConstants.EMPTY_START_ROW), new ImmutableBytesWritable(start));
+						}
+						else
+							setScanBoundariesIfNotnull(new ImmutableBytesWritable(HConstants.EMPTY_START_ROW), nextRow);
 					}
+					flipped = true;
 				} else {	
 					if (!isAlreadyReversed) {
-						setScanBoundariesIfNotnull(nextRow, null);
+						if (flipped)
+						    fetchPlan.getContext().setReversalAlreadySet(true);
+				        setScanBoundariesIfNotnull(nextRow, new ImmutableBytesWritable(HConstants.EMPTY_END_ROW));
 					} else {
-						setScanBoundariesIfNotnull(null, currentRow);
+						if (flipped)
+						    fetchPlan.getContext().setReversalAlreadySet(true);
+						setScanBoundariesIfNotnull(new ImmutableBytesWritable(HConstants.EMPTY_START_ROW), currentRow); // change for NEXT NEXT PRIOR PRIOR
 					}
 					if (previousRow != null) {
 						pPreviousRow = new ImmutableBytesWritable(previousRow.get());
@@ -138,10 +163,11 @@ public final class CursorUtil {
 		
         public void updateLastScanRow(Tuple rowValues,Tuple nextRowValues) {
         	
-        	this.moreValues = isSeqScan ? nextRowValues != null : rowValues != null;
-            if(!moreValues()){
+        	this.moreValues = (isSeqScan) ? nextRowValues != null : rowValues != null;
+        	
+            /*if(!moreValues()){
                return;
-            }        
+            }*/        
             if (nextRow == null) {
                 nextRow = new ImmutableBytesWritable();
             }
@@ -152,8 +178,8 @@ public final class CursorUtil {
 			}
             if (nextRowValues != null) {
                 nextRowValues.getKey(nextRow);
-            } /*else
-            	nextRow = null;*/
+            } else
+            	nextRow = null;
             if (rowValues != null) {
                 rowValues.getKey(currentRow);
             } else

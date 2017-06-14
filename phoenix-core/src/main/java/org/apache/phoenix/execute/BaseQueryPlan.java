@@ -236,7 +236,7 @@ public abstract class BaseQueryPlan implements QueryPlan {
             WhereCompiler.compile(context, statement, null, Collections.singletonList(dynamicFilter), false, null);            
         }
         
-        if (OrderBy.REV_ROW_KEY_ORDER_BY.equals(orderBy)) {
+        if (OrderBy.REV_ROW_KEY_ORDER_BY.equals(orderBy) && !context.isReversalAlreadySet()) {
             ScanUtil.setReversed(scan);
             // Hack for working around PHOENIX-3121 and HBASE-16296.
             // TODO: remove once PHOENIX-3121 and/or HBASE-16296 are fixed.
@@ -244,6 +244,10 @@ public abstract class BaseQueryPlan implements QueryPlan {
             if (limit != null && limit % scannerCacheSize == 0) {
                 scan.setCaching(scannerCacheSize + 1);
             }
+        }
+        
+        if (context.isReversalAlreadySet()) {
+        	context.setReversalAlreadySet(false);
         }
         
         if (statement.getHint().hasHint(Hint.SMALL)) {
