@@ -128,14 +128,16 @@ public class CursorResultIterator implements ResultIterator {
     	}
     	
         Tuple next = delegate.next();
-        if (isAggregate && rowsRead >= cacheSize) {
-        	items.removeLast();
-        }
         CursorUtil.updateCursor(cursorName, next, isAggregate ? null : ((PeekingResultIterator) delegate).peek());
-        rowsRead++;
-        offset++;
-        usedOffset++;
-        stack.offer(next);
+        if (next != null) {
+          rowsRead++;
+          offset++;
+          usedOffset++;
+          stack.offer(next);
+          if (isAggregate && rowsRead > cacheSize) {
+          	items.removeLast();
+          }
+        }
         return next;
     }
     
@@ -173,4 +175,5 @@ public class CursorResultIterator implements ResultIterator {
     public void setIsPrior(boolean isPrior){
         this.isPrior = isPrior;
     }
+    
 }

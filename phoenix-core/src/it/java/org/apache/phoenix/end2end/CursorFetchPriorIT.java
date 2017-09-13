@@ -109,7 +109,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = "A" + i;
     		String resultID = null;
     		while (rs.next()) {
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -118,7 +117,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -126,7 +124,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -135,7 +132,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 3 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -144,7 +140,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "A"+i;
     		while (rs.next()) {
-    			System.out.println("**** Value 4 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -153,7 +148,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "A"+i;
     		while (rs.next()) {
-    			System.out.println("**** Value 4 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -181,35 +175,30 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		int i = 0;
     		String rowID = "A" + i;
     		while (rs.next()) {
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		i++;
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		i++;
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		assertEquals(2,i);
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		i--;
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 3 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		assertEquals(1,i);
@@ -217,7 +206,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "A"+i;
     		while (rs.next()) {
-    			System.out.println("**** Value 4 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		assertEquals(1,i);
@@ -245,7 +233,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = null;
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
@@ -255,7 +242,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
         		i--;
     		}
@@ -266,7 +252,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = null;
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 3 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
@@ -276,7 +261,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 4 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
         		i--;
     		}
@@ -308,25 +292,58 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = null;
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     			rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		}
     		assertEquals(10,i);
-    		System.out.println("********** Completed FETCH NEXT **********");
     		i--;
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
-    		System.out.println("********** Starting FETCH PRIOR **********");
     		while (rs.next()) {
     			rowID = "A" + i;
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
         		i--;
         		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		}
     		assertEquals(-1,i);
+    		rs.close();
+    	} finally {
+    		DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
+    		deleteTestTable();
+    	}
+
+    }
+    
+    @Test
+    public void testFetchPriorOnCursorsSimple22() throws SQLException {
+    	try {
+    		createAndInitializeTestTable();
+    		String querySQL = "SELECT * FROM " + TABLE_NAME;
+    		// Test actual cursor implementation
+    		String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+    		DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).execute();
+    		cursorSQL = "OPEN testCursor";
+    		DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).execute();
+    		cursorSQL = "FETCH NEXT 20 ROWS FROM testCursor";
+    		ResultSet rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
+    		int i = 0;
+    		String rowID = null;
+    		while (rs.next()) {
+    			rowID = "A" + i;
+    			assertEquals(rowID, rs.getString(1));
+    			i++;
+    		}
+    		assertEquals(10,i);
+    		i--;
+    		cursorSQL = "FETCH PRIOR 4 ROWS FROM testCursor";
+    		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
+    		while (rs.next()) {
+    			rowID = "A" + i;
+    			assertEquals(rowID, rs.getString(1));
+        		i--;
+    		}
+            assertEquals(5,i);
     		rs.close();
     	} finally {
     		DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
@@ -356,8 +373,7 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		int i = 9;
     		String rowID = null;
     		while (rs.next()) {
-    			rowID = "A"+i;
-    			System.out.println("**** Value 1 ****"+rs.getString(1));
+    			rowID = "A"+i;;
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -367,7 +383,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = conn.prepareStatement(cursorSQL).executeQuery();
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 2 ****"+rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
@@ -377,7 +392,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		i--;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 3 ****"+rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -387,11 +401,52 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		assertEquals(6, i);
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 4 ****"+rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
     		assertEquals(10,i);
+    		rs.close();
+    		conn.prepareStatement("CLOSE testCursor").execute();
+    	} finally {
+    		deleteTestTable();
+    	}
+    }
+    
+    @Test
+    public void testFetchPriorOnCursorsSimple31() throws SQLException {
+    	/*
+    	 * Test with a small cache size of 2 rows
+    	 */
+    	try {
+    		createAndInitializeTestTable();
+    		Properties props = PropertiesUtil.deepCopy(TEST_PROPERTIES);
+    		props.setProperty(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, Integer.toString(2));
+    		Connection conn = DriverManager.getConnection(getUrl(), props);
+    		String querySQL = "SELECT * FROM " + TABLE_NAME + " ORDER BY TICKER DESC";
+    		// Test actual cursor implementation
+    		String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "OPEN testCursor";
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "FETCH NEXT 20 ROWS FROM testCursor";
+    		ResultSet rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		int i = 9;
+    		String rowID = null;
+    		while (rs.next()) {
+    			rowID = "A"+i;;
+    			assertEquals(rowID, rs.getString(1));
+    			i--;
+    		}
+    		i++;
+    		assertEquals(0, i);
+    		cursorSQL = "FETCH PRIOR 4 ROWS FROM testCursor";
+    		rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		while (rs.next()) {
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i++;
+    		}
+    		assertEquals(4,i);
     		rs.close();
     		conn.prepareStatement("CLOSE testCursor").execute();
     	} finally {
@@ -415,7 +470,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = "A" + i;
     		String resultID = null;
     		while (rs.next()) {
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -424,7 +478,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -432,7 +485,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -441,7 +493,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 3 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -450,7 +501,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "A"+i;
     		while (rs.next()) {
-    			System.out.println("**** Value 4 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -459,7 +509,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "A"+i;
     		while (rs.next()) {
-    			System.out.println("**** Value 5 next****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -467,7 +516,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 6 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -476,7 +524,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "A" + i;
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 7 prior****"+ rs.getString(1));
     			resultID = rs.getString(1);
     			assertEquals(rowID, rs.getString(1));
     		}
@@ -513,7 +560,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = null;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 1 ****"+rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     			rs = conn.createStatement().executeQuery(cursorSQL);
@@ -524,7 +570,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = conn.createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 2 ****"+rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     			rs = conn.createStatement().executeQuery(cursorSQL);
@@ -558,20 +603,17 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "MA";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		cursorSQL = "FETCH PRIOR FROM testCursor";
     		rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
     		rowID = "MA";
     		while (rs.next()) {
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		rowID = "CA";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
-    		while (rs.next()) {
-    			System.out.println("**** Value 3 prior****"+ rs.getString(1));
+    		while (rs.next()) {;
     			assertEquals(rowID, rs.getString(1));
     		}
     		rs.close();
@@ -595,7 +637,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		ResultSet rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
     		String rowID = "CA";
     		while (rs.next()) {
-    			System.out.println("**** Value 0 next****"+ rs.getString(1)+" "+rs.getInt(2));
     			assertEquals(rowID, rs.getString(1));
     			assertEquals(2, rs.getInt(2));
     		}
@@ -603,7 +644,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rowID = "MA";
     		rs = DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		while (rs.next()) {
-    			System.out.println("**** Value 1 next****"+ rs.getString(1)+" "+rs.getInt(2));
     			assertEquals(rowID, rs.getString(1));
     			assertEquals(3, rs.getInt(2));
     		}
@@ -612,7 +652,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs =  DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		rowID = "MA";
     		while (rs.next()) {
-    			System.out.println("**** Value 2 prior****"+ rs.getString(1)+" "+rs.getInt(2));
     			assertEquals(rowID, rs.getString(1));
     			assertEquals(3, rs.getInt(2));
     		}
@@ -621,7 +660,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs =  DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
     		System.out.println("Made the second fetch call "+rs);
     		while (rs.next()){
-    			System.out.println("**** Value 3 next****"+ rs.getString(1)+" "+rs.getInt(2));
     			assertEquals(rowID, rs.getString(1));
     			assertEquals(2, rs.getInt(2));
     		}
@@ -649,7 +687,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		String rowID = null;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -658,7 +695,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 1 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
@@ -668,7 +704,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		i--;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 2 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -698,8 +733,8 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		int i = 9;
     		String rowID = null;
     		while (rs.next()) {
+    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -707,8 +742,8 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
     		rs = conn.prepareStatement(cursorSQL).executeQuery();
     		while (rs.next()) {
+    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
-    			System.out.println("**** Value 1 prior****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
@@ -718,7 +753,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		i--;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 2 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i--;
     		}
@@ -727,13 +761,54 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		i++;
     		while (rs.next()) {
     			rowID = "A"+i;
-    			System.out.println("**** Value 3 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     			i++;
     		}
     		rs.close();
-    		conn.prepareStatement("CLOSE testCursor").execute();
     	} finally {
+    		DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
+    		deleteTestTable();
+    	}
+
+    }
+    
+    @Test
+    public void testFetchPriorOnCursorPopulate1() throws SQLException {
+    	try {
+    		createAndInitializeTestTable();
+    		Properties props = PropertiesUtil.deepCopy(TEST_PROPERTIES);
+    		props.setProperty(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB, Integer.toString(2));
+    		Connection conn = DriverManager.getConnection(getUrl(), props);
+    		String querySQL = "SELECT * FROM " + TABLE_NAME + " ORDER BY PRICE DESC";
+    		// Test actual cursor implementation
+    		String cursorSQL = "DECLARE testCursor CURSOR FOR " + querySQL;
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "OPEN testCursor";
+    		conn.prepareStatement(cursorSQL).execute();
+    		cursorSQL = "FETCH NEXT 20 ROWS FROM testCursor";
+    		ResultSet rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		int i = 9;
+    		String rowID = null;
+    		while (rs.next()) {
+    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i--;
+    		}
+    		i++;
+    		assertEquals(0, i);
+    		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
+    		rs = conn.prepareStatement(cursorSQL).executeQuery();
+    		while (rs.next()) {
+    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
+    			rowID = "A"+i;
+    			assertEquals(rowID, rs.getString(1));
+    			i++;
+    		}
+    		assertEquals(4,i);
+    		rs.close();
+    	} finally {
+    		DriverManager.getConnection(getUrl()).prepareStatement("CLOSE testCursor").execute();
     		deleteTestTable();
     	}
 

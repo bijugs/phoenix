@@ -40,6 +40,7 @@ public class CursorFetchPlan extends DelegateQueryPlan {
     private String cursorName;
     private boolean isSeqScan;
     private boolean isPrior;
+    private int cacheSize;
 
     public void updateDirection(boolean isPrior) {
         this.isPrior = isPrior;
@@ -48,6 +49,8 @@ public class CursorFetchPlan extends DelegateQueryPlan {
     public CursorFetchPlan(QueryPlan cursorQueryPlan,String cursorName) {
         super(cursorQueryPlan);
         boolean isSalted = delegate.getTableRef().getTable().getBucketNum() != null;
+        cacheSize = delegate.getContext().getConnection().getQueryServices().getProps().getInt(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB,
+       		 QueryServicesOptions.DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT);
         IndexType indexType = delegate.getTableRef().getTable().getIndexType();
         this.isAggregate = delegate.getStatement().isAggregate() || delegate.getStatement().isDistinct();
 		if (!isAggregate && delegate.getOrderBy().getOrderByExpressions().isEmpty() &&
@@ -60,8 +63,6 @@ public class CursorFetchPlan extends DelegateQueryPlan {
     @Override
     public ResultIterator iterator(ParallelScanGrouper scanGrouper, Scan scan) throws SQLException {
         StatementContext context = delegate.getContext();
-        int cacheSize = context.getConnection().getQueryServices().getProps().getInt(QueryServices.MAX_CURSOR_CACHE_ROW_COUNT_ATTRIB,
-        		 QueryServicesOptions.DEFAULT_MAX_CURSOR_CACHE_ROW_COUNT);
         if (resultIterator == null && !isSeqScan) {
             context.getOverallQueryMetrics().startQuery();
 	        resultIterator = new CursorResultIterator(delegate.iterator(scanGrouper, scan),cursorName,context.getAggregationManager().getAggregators(), cacheSize);
