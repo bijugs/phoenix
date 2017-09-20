@@ -597,7 +597,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		ResultSet rs = DriverManager.getConnection(getUrl()).prepareStatement(cursorSQL).executeQuery();
     		String rowID = "CA";
     		while (rs.next()) {
-    			System.out.println("**** Value 0 next****"+ rs.getString(1));
     			assertEquals(rowID, rs.getString(1));
     		}
     		rowID = "MA";
@@ -658,7 +657,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
 
     		rowID = "CA";
     		rs =  DriverManager.getConnection(getUrl()).createStatement().executeQuery(cursorSQL);
-    		System.out.println("Made the second fetch call "+rs);
     		while (rs.next()){
     			assertEquals(rowID, rs.getString(1));
     			assertEquals(2, rs.getInt(2));
@@ -733,7 +731,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		int i = 9;
     		String rowID = null;
     		while (rs.next()) {
-    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
     			assertEquals(rowID, rs.getString(1));
     			i--;
@@ -742,7 +739,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
     		rs = conn.prepareStatement(cursorSQL).executeQuery();
     		while (rs.next()) {
-    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
     			assertEquals(rowID, rs.getString(1));
     			i++;
@@ -790,7 +786,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		int i = 9;
     		String rowID = null;
     		while (rs.next()) {
-    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
     			assertEquals(rowID, rs.getString(1));
     			i--;
@@ -800,7 +795,6 @@ public class CursorFetchPriorIT extends BaseHBaseManagedTimeIT {
     		cursorSQL = "FETCH PRIOR 4 ROW FROM testCursor";
     		rs = conn.prepareStatement(cursorSQL).executeQuery();
     		while (rs.next()) {
-    			System.out.println("**** Row id "+rs.getString(1)+ " ****");
     			rowID = "A"+i;
     			assertEquals(rowID, rs.getString(1));
     			i++;

@@ -200,15 +200,10 @@ public final class CursorUtil {
             return selectSQL;
         }
         
-        public ResultIterator getOffsetIterator(int offset) {
+        public ResultIterator getOffsetIterator(int offset) throws SQLException {
         	ResultIterator rsIterator = null;
-        	try {
-				rsIterator = queryPlan.iterator();
-				rsIterator = new OffsetResultIterator(rsIterator, offset);		
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			rsIterator = queryPlan.iterator();
+			rsIterator = new OffsetResultIterator(rsIterator, offset);		
 			return rsIterator;
         }
     }
@@ -279,7 +274,7 @@ public final class CursorUtil {
         return mapCursorIDQuery.get(cursorName).moreValues();
     }
     
-    public static ResultIterator getOffsetIterator(String cursorName, int offset) {
+    public static ResultIterator getOffsetIterator(String cursorName, int offset) throws SQLException {
     	return mapCursorIDQuery.get(cursorName).getOffsetIterator(offset);
     }
     
